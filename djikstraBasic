@@ -1,0 +1,154 @@
+package sand.box;
+import java.util.*;
+
+public class Main {
+
+    public static void main(String[] args) {
+        djikSearch djiksearch = new djikSearch(new LinkedList<>(), new LinkedList<>(),
+                new node("alpha", new LinkedList<>(), 0, false, false),
+                new node("beta", new LinkedList<>(), 10000, false, false),
+                new node("charlie", new LinkedList<>(), 10000, false, false),
+                new node("delta", new LinkedList<>(), 10000, false, false),
+                new node("echo", new LinkedList<>(), 10000, false, false));
+        djiksearch.tester();
+        djiksearch.djikLoop();
+    }
+}
+
+class djikSearch {
+    List<node> evaluated_nodes;
+    List<node> discovered_nodes;
+    node alpha;
+    node beta;
+    node charlie;
+    node delta;
+    node echo;
+
+    djikSearch(List<node> evaluated_nodes, List<node> discovered_nodes, node alpha, node beta, node charlie, node delta, node echo){
+        this.evaluated_nodes = evaluated_nodes;
+        this.discovered_nodes = discovered_nodes;
+        this.alpha = alpha;
+        this.beta = beta;
+        this.charlie = charlie;
+        this.delta= delta;
+        this.echo = echo;
+    }
+
+    void initialiseNodes() {
+        this.alpha.dist = 0;
+        this.beta.dist = 1000;
+        this.charlie.dist = 1000;
+        this.delta.dist = 1000;
+        this.echo.dist = 1000;
+
+        this.alpha.neighbours.add(new nodeEdgeTuple(beta, 7));
+        this.alpha.neighbours.add(new nodeEdgeTuple(charlie, 3));
+
+        this.beta.neighbours.add(new nodeEdgeTuple(alpha, 7));
+        this.beta.neighbours.add(new nodeEdgeTuple(charlie, 1));
+        this.beta.neighbours.add(new nodeEdgeTuple(delta, 2));
+        this.beta.neighbours.add(new nodeEdgeTuple(echo, 6));
+
+        this.charlie.neighbours.add(new nodeEdgeTuple(alpha, 3));
+        this.charlie.neighbours.add(new nodeEdgeTuple(beta,  1));
+        this.charlie.neighbours.add(new nodeEdgeTuple(delta, 2));
+
+        this.delta.neighbours.add(new nodeEdgeTuple(charlie, 2));
+        this.delta.neighbours.add(new nodeEdgeTuple(beta, 2));
+        this.delta.neighbours.add(new nodeEdgeTuple(echo, 4));
+
+        this.echo.neighbours.add(new nodeEdgeTuple(beta, 6));
+        this.echo.neighbours.add(new nodeEdgeTuple(delta, 4));
+    }
+
+    public boolean isGraphFullyExplored(){
+        return (this.evaluated_nodes.size() == 5);
+        // if all 5 nodes have had all their connections checked already
+    }
+
+    public int getCurrentDistance(node node, nodeEdgeTuple neighbour){
+        return node.dist + neighbour.edge;
+        // the distance to neighbour node
+        // is the distance of the previous node added to the edge connecting it
+        // to the neighbour node
+    }
+
+    public boolean isCurrentDistanceShorterThanInitialDistance(node node, nodeEdgeTuple neighbour){
+        return (getCurrentDistance(node, neighbour) < neighbour.node.dist);
+    }
+
+    public node picksNodeWithShortestDistance(List<node> discovered_nodes){
+        node node_with_shortest_distance = new node(null, null, 10000, false, false);
+        for (int j = 0; j < discovered_nodes.size(); j++){
+            if (discovered_nodes.get(j).dist < node_with_shortest_distance.dist){
+                node_with_shortest_distance = discovered_nodes.get(j);
+            }
+        }
+        return node_with_shortest_distance;
+    }
+
+    public void djikLoop(){
+        initialiseNodes();
+        this.discovered_nodes.add(this.alpha);
+        while (!isGraphFullyExplored()){
+            node node_under_eval = picksNodeWithShortestDistance(this.discovered_nodes); 
+            for (int i = 0; i < node_under_eval.neighbours.size(); i++){ // finds the neighbours of the current node under eval
+                if (!node_under_eval.neighbours.get(i).node.evalled && !node_under_eval.neighbours.get(i).node.discovered) { // if the node hasn't been evalled yet
+                    // then can add it to just discovered nodes
+                    this.discovered_nodes.add(node_under_eval.neighbours.get(i).node); // adds the node of the nodeEdgeTuple of the neighbour to discovered list
+                    node_under_eval.neighbours.get(i).node.discovered = true;
+                }
+                if (isCurrentDistanceShorterThanInitialDistance(node_under_eval, node_under_eval.neighbours.get(i))){
+                    node_under_eval.neighbours.get(i).node.dist = getCurrentDistance(node_under_eval, node_under_eval.neighbours.get(i));
+                    // update the distance of the neighbour node
+                }
+                System.out.println(node_under_eval.name + i + isGraphFullyExplored() + node_under_eval.dist + this.evaluated_nodes.size());
+            }
+            node_under_eval.evalled = true;
+            this.discovered_nodes.remove(node_under_eval); // node that's finished evaluation is removed from list of discovered nodes to ...
+            this.evaluated_nodes.add(node_under_eval); // ... add instead to list of evaluated nodes
+        }
+        for (int iter = 0; iter < evaluated_nodes.size(); iter++){
+            System.out.println("Name of Node: " + evaluated_nodes.get(iter).name +
+                               " Shortest dist of Node from Alpha: " + evaluated_nodes.get(iter).dist);
+        }
+    }
+}
+
+
+
+
+class nodeEdgeTuple{
+    // these will be put into the neighbours list in the node class
+    node node;
+    Integer edge;
+    nodeEdgeTuple(node node, Integer edge){
+        this.node = node;
+        this.edge = edge;
+    }
+}
+
+
+class node {
+    String name;
+    LinkedList<nodeEdgeTuple> neighbours;
+    Integer dist;
+    boolean evalled;
+    boolean discovered;
+    node(String name, LinkedList<nodeEdgeTuple> neighbours, Integer dist, boolean evalled, boolean discovered) {
+           this.name = name;
+           this.neighbours = neighbours;
+           this.dist = dist;
+           this.evalled = evalled;
+           this.discovered = discovered;
+    }
+
+}
+/*
+RESULT: 
+Name of Node: alpha Shortest dist of Node from Alpha: 0
+Name of Node: charlie Shortest dist of Node from Alpha: 3
+Name of Node: beta Shortest dist of Node from Alpha: 4
+Name of Node: delta Shortest dist of Node from Alpha: 5
+Name of Node: echo Shortest dist of Node from Alpha: 9
+*/
