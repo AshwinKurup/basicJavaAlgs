@@ -1,0 +1,82 @@
+package com.example.ashwin.myapplication.feature;
+
+import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
+import android.widget.Button;
+import android.view.View;
+import android.widget.EditText;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+public class MainActivity extends AppCompatActivity {
+
+    Button button0, button1, buttonTranslate, buttonClear;
+    EditText calculateResult; 
+  
+    // Used to load the 'native-lib' library on application startup.
+    static {
+        System.loadLibrary("native-lib");
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        // okay my plan is now to get an editor that reads binary
+        button0 = (Button) findViewById(R.id.button0);
+        button1 = (Button) findViewById(R.id.button1);
+        buttonTranslate = (Button) findViewById(R.id.buttonCalc);
+        calculateResult = (EditText) findViewById(R.id.editText);
+        buttonClear = (Button) findViewById(R.id.buttonClear);
+        // I guess these are basically like new instance of class declarations
+
+        buttonClear.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) { // v is the view that has been clicked
+                calculateResult.setText(null); //clears the text
+            }
+        });
+
+        buttonTranslate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) { 
+                calculateResult.setText(binaryCalc(calculateResult.getText().toString()));
+            }
+        });
+
+        button1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                calculateResult.setText(calculateResult.getText() + "1");
+            }
+        });
+
+        button0.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) { 
+                calculateResult.setText(calculateResult.getText() + "0");
+            }
+        });
+    }
+    public static String binaryCalc(String binary_string) { 
+        double sum = 0;
+        char[] binary_char_array = binary_string.toCharArray();
+        for (int index = 0; index < binary_char_array.length; index++) {
+            char character = binary_char_array[binary_char_array.length - index - 1];
+            System.out.println("this is the index considered" + index +
+                    "this is the actual character: " + character);
+            if (character == '0') {
+                sum = sum; // no change
+            } else if (character == '1') { // the only other option is that the char is one
+                sum += Math.pow(2, index);
+                System.out.println("this is the sum" + sum);
+            }
+            else{
+                return "you make me sad. please only type 0 or 1.";
+            }
+        }
+        return Double.toString(sum);
+    }
+}
